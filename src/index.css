@@ -1,0 +1,20 @@
+html,
+body,
+#root {
+  display: contents;
+
+  margin: 0px;
+  padding: 0px;
+}
+
+.container {
+  background-color: black;
+  width: 100vw;
+  height: 100vh;
+
+  margin: 0px;
+  padding: 0px;
+
+  align-content: center;
+  font-size: 40px;
+}
