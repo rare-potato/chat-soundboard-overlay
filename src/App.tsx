@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import * as tmi from "tmi.js";
 import "./App.css";
 
@@ -57,7 +57,7 @@ function App() {
         message = message.slice(0, -3);
       }
 
-      if (message !== PLAY_WORD) return;
+      if (message !== PLAY_WORD || !tags) return;
 
       if (RANDOM_CHANCE) {
         const roll = Math.random() * 100 < Number(RANDOM_CHANCE.replace("%", ""));
