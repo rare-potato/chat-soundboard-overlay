@@ -20,7 +20,10 @@ function App() {
     return (
       <>
         You need to put the twitch channel in the url! example:{" "}
-        <a href="http://localhost:5173/example/?channel=bobross">http://localhost:5173/example/?channel=bobross</a>!
+        <a href="https//repo.pogly.gg/chatsoundboard/?channel=bobross">
+          https//repo.pogly.gg/chatsoundboard/?channel=bobross
+        </a>
+        !
       </>
     );
 
