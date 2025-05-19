@@ -1,6 +1,8 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import * as tmi from "tmi.js";
 import "./App.css";
+import { useGetSoundList } from "./useGetSoundList";
+import { SoundType } from "./SoundType";
 
 function App() {
   const initialized = useRef<boolean>(false);
@@ -9,12 +11,8 @@ function App() {
 
   // Pass required information to the widget with URL parameters.
   const TWITCH_CHANNEL = urlParams.get("channel");
-  const PLAY_WORD = urlParams.get("playword");
-  const AUDIO_NAME = urlParams.get("audioname");
-  const AUDIO_URL = urlParams.get("audiourl");
-  const VOLUME = urlParams.get("volume");
+  const MESSAGE_CONTAINS = urlParams.get("messagecontains");
   const ENABLED = urlParams.get("enabled");
-  const RANDOM_CHANCE = urlParams.get("chance");
 
   if (!TWITCH_CHANNEL)
     return (
@@ -27,12 +25,18 @@ function App() {
       </>
     );
 
+  const [soundList, setSoundList] = useState<SoundType[]>([]);
+  const listOfTriggerWords = new Set<string>();
+
+  useGetSoundList(setSoundList, soundList);
+
   useEffect(() => {
-    if (initialized.current) return;
+    if (initialized.current || soundList.length === 0) return;
     initialized.current = true;
 
     if (ENABLED === "false") return;
-    if (!AUDIO_URL) return;
+
+    soundList.forEach((sound: SoundType) => listOfTriggerWords.add(sound.trigger_word));
 
     // Twitch chat connection logic
     const twitchChannel: string = TWITCH_CHANNEL.toLowerCase();
@@ -56,26 +60,57 @@ function App() {
 
     // Code to grab messages from Twitch chat.
     twitchClient.on("message", (_channel: string, tags: tmi.ChatUserstate, message: string) => {
+      if (!tags) return;
+
       if (/[\u0020\uDBC0]/.test(message)) {
         message = message.slice(0, -3);
       }
 
-      if (message !== PLAY_WORD || !tags) return;
+      let triggerWord: string | null = null;
 
-      if (RANDOM_CHANCE) {
-        const roll = Math.random() * 100 < Number(RANDOM_CHANCE.replace("%", ""));
+      if (MESSAGE_CONTAINS === "true") {
+        const words = message.split(/\s+/);
 
-        if (!roll) return;
+        words.some((word: string) => {
+          if (listOfTriggerWords.has(word)) {
+            triggerWord = word;
+          }
+        });
+      } else {
+        if (listOfTriggerWords.has(message)) {
+          triggerWord = message;
+        }
       }
 
-      console.log("Playing");
+      if (!triggerWord) return;
 
-      const audio = new Audio(decodeURI(AUDIO_URL));
-      audio.volume = Number(VOLUME) || 0.5;
+      const sound: SoundType = soundList.find((s: SoundType) => s.trigger_word === triggerWord)!;
+
+      if (!sound || sound.enabled === "false") return;
+
+      const roll = Math.random() * 100 < Number(sound.chance.replace("%", ""));
+
+      if (!roll) return;
+
+      const audio = new Audio(decodeURI(sound.sound));
+      audio.volume = Number(sound.volume) || 0.5;
 
       audio.play();
     });
-  }, []);
+  }, [soundList]);
+
+  if (soundList.length === 0) {
+    return (
+      <div
+        style={{
+          color: `${ENABLED === "true" ? "green" : "red"}`,
+        }}
+        className="container"
+      >
+        <h1 style={{ margin: "0", padding: "0" }}>No sounds loaded</h1>
+      </div>
+    );
+  }
 
   // The actual page shown.
   return (
@@ -85,7 +120,13 @@ function App() {
       }}
       className="container"
     >
-      <h1 style={{ margin: "0", padding: "0" }}>{AUDIO_NAME}</h1>
+      {soundList.length > 1 ? (
+        <h1 style={{ margin: "0", padding: "0" }}>
+          {soundList.filter((sound: SoundType) => sound.enabled === "true").length} sounds enabled
+        </h1>
+      ) : (
+        <h1 style={{ margin: "0", padding: "0" }}>{soundList[0].name}</h1>
+      )}
     </div>
   );
 }
