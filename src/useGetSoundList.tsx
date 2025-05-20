@@ -35,7 +35,7 @@ export const useGetSoundList = (setSoundList: Function, soundList: SoundType[]) 
     if (!SOUND_LIST_URL || soundList.length > 0) return;
 
     (async () => {
-      const REQUEST = await fetch("https://cors-anywhere.herokuapp.com/" + SOUND_LIST_URL);
+      const REQUEST = await fetch("https://corsproxy.io/" + SOUND_LIST_URL);
       const SOUND_JSON = await REQUEST.json();
 
       if (SOUND_JSON && SOUND_JSON.sounds) {
