@@ -12,7 +12,6 @@ function App() {
   // Pass required information to the widget with URL parameters.
   const TWITCH_CHANNEL = urlParams.get("channel");
   const MESSAGE_CONTAINS = urlParams.get("messagecontains");
-  const TRIGGER_COOLDOWN = urlParams.get("triggercooldown");
   const ENABLED = urlParams.get("enabled");
 
   if (!TWITCH_CHANNEL)
@@ -97,17 +96,13 @@ function App() {
 
       audio.play();
 
-      if (!TRIGGER_COOLDOWN && !sound.trigger_cooldown) return;
-
-      const cd: number = TRIGGER_COOLDOWN ? Number(TRIGGER_COOLDOWN) : Number(sound.trigger_cooldown);
-
-      if (cd === 0) return;
+      if (!sound.trigger_cooldown) return;
 
       soundCooldown.current.push(sound.trigger_word);
 
       setTimeout(() => {
         soundCooldown.current = soundCooldown.current.filter((word) => word !== triggerWord);
-      }, Number(cd) * 1000);
+      }, sound.trigger_cooldown * 1000);
     });
   }, [soundList]);
 

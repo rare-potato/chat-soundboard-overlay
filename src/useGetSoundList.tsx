@@ -12,6 +12,7 @@ export const useGetSoundList = (setSoundList: Function, soundList: SoundType[]) 
   const VOLUME = urlParams.get("volume");
   const ENABLED = urlParams.get("enabled");
   const RANDOM_CHANCE = urlParams.get("chance");
+  const TRIGGER_COOLDOWN = urlParams.get("triggercooldown");
 
   const SOUND_LIST_URL = urlParams.get("soundlisturl") ? decodeURIComponent(urlParams.get("soundlisturl")!) : null;
 
@@ -25,6 +26,7 @@ export const useGetSoundList = (setSoundList: Function, soundList: SoundType[]) 
         sound: AUDIO_URL,
         volume: Number(VOLUME!),
         chance: RANDOM_CHANCE || "100%",
+        trigger_cooldown: Number(TRIGGER_COOLDOWN) || null,
         enabled: ENABLED!,
       };
 
