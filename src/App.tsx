@@ -12,6 +12,7 @@ function App() {
   // Pass required information to the widget with URL parameters.
   const TWITCH_CHANNEL = urlParams.get("channel");
   const MESSAGE_CONTAINS = urlParams.get("messagecontains");
+  const TRIGGER_COOLDOWN = urlParams.get("triggercooldown");
   const ENABLED = urlParams.get("enabled");
 
   if (!TWITCH_CHANNEL)
@@ -26,6 +27,7 @@ function App() {
     );
 
   const [soundList, setSoundList] = useState<SoundType[]>([]);
+  const soundCooldown = useRef<string[]>([]);
   const listOfTriggerWords = new Set<string>();
 
   useGetSoundList(setSoundList, soundList);
@@ -82,20 +84,30 @@ function App() {
         }
       }
 
-      if (!triggerWord) return;
+      if (!triggerWord || soundCooldown.current.includes(triggerWord)) return;
 
       const sound: SoundType = soundList.find((s: SoundType) => s.trigger_word === triggerWord)!;
-
       if (!sound || sound.enabled === "false") return;
 
       const roll = Math.random() * 100 < Number(sound.chance.replace("%", ""));
-
       if (!roll) return;
 
       const audio = new Audio(decodeURI(sound.sound));
       audio.volume = Number(sound.volume) || 0.5;
 
       audio.play();
+
+      if (!TRIGGER_COOLDOWN && !sound.trigger_cooldown) return;
+
+      const cd: number = TRIGGER_COOLDOWN ? Number(TRIGGER_COOLDOWN) : Number(sound.trigger_cooldown);
+
+      if (cd === 0) return;
+
+      soundCooldown.current.push(sound.trigger_word);
+
+      setTimeout(() => {
+        soundCooldown.current = soundCooldown.current.filter((word) => word !== triggerWord);
+      }, Number(cd) * 1000);
     });
   }, [soundList]);
 
