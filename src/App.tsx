@@ -12,7 +12,7 @@ function App() {
   // Pass required information to the widget with URL parameters.
   const CHANNEL = urlParams.get("channel");
   const WEBSITE = urlParams.get("site");
-  const ENABLED = urlParams.get("enabled");
+  const [enabled, setEnabled] = useState(urlParams.get("enabled") !== "false");
 
   if (!CHANNEL)
     return (
@@ -53,10 +53,11 @@ function App() {
   useGetSoundList(setSoundList, soundList);
 
   useEffect(() => {
-    if (initialized.current || soundList.length === 0) return;
-    initialized.current = true;
 
-    if (ENABLED === "false") return;
+  if (initialized.current || soundList.length === 0) return;
+  initialized.current = true;
+
+  if (!enabled) return;
 
     soundList.forEach((sound: SoundType) => listOfTriggerWords.add(sound.trigger_word));
 
@@ -213,7 +214,7 @@ function App() {
     return (
       <div
         style={{
-          color: `${ENABLED === "true" ? "green" : "red"}`,
+          color: enabled ? "green" : "red",
         }}
         className="container"
       >
@@ -226,10 +227,21 @@ function App() {
   return (
     <div
       style={{
-        color: `${ENABLED === "true" ? "green" : "red"}`,
+        color: enabled ? "green" : "red",
       }}
       className="container"
     >
+      <div style={{ marginBottom: 16 }}>
+        <label style={{ fontWeight: "bold" }}>
+          <input
+            type="checkbox"
+            checked={enabled}
+            onChange={() => setEnabled((prev) => !prev)}
+            style={{ marginRight: 8 }}
+          />
+          Soundboard {enabled ? "ON" : "OFF"}
+        </label>
+      </div>
       {soundList.length > 1 ? (
         <h1 style={{ margin: "0", padding: "0" }}>
           {soundList.filter((sound: SoundType) => sound.enabled === "true").length} sounds enabled
